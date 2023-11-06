@@ -4,17 +4,12 @@
 import os
 import requests
 from requests.auth import HTTPBasicAuth
-import ipywidgets as widgets
 import streamlit as st
 import pandas as pd
 
 
 # change
 def x(l, k, v): l[k] = v
-
-
-# selection widget
-def w(w, o, n): v = w(options=sorted(o), description=n, layout=widgets.Layout(width="40%")); display(v); return v
 
 
 # search signavio
