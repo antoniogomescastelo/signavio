@@ -442,7 +442,7 @@ try:
     signavio = {"host": signavio.get("host"), "tenant": signavio.get("tenant"), "authToken": authToken, "jsessionId": jsessionId, "lbrouteId": lbrouteId}
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[login] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -453,7 +453,7 @@ try:
     _=[x(folders, folder.get("rep").get("name"), folder) for folder in search(signavio, q='*', types=["DIR"]) if isFolderValid(folder)]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[folders] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -470,7 +470,7 @@ try:
     _=[x(attributes, attribute.get("rep").get("name"), attribute) for attribute in getattributes(signavio)]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[meta] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -511,7 +511,7 @@ try:
     _=[x(categories, category.get("rep").get("name"), category) for category in getcategories(signavio) if category.get("rel") == "cat"]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[glossarycategory] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -523,6 +523,10 @@ categoryToGet = categories.get(option) if option else st.warning("Please specify
 
 # list all signavio models found on the selected folders ignoring any child folders
 modelsToGet = [getModel(signavio, model) for folder in foldersToQuery for model in folder if isModelValid(model, modelType=["Business Process Diagram (BPMN 2.0)"])]
+
+if not modelsToGet:
+    st.error('[models] Something went wrong. Please try again.')
+    st.stop()
 
 
 # get the details of all selected signavio folders to create or update
@@ -562,7 +566,7 @@ try:
     _=[x(assetTypes, assetType.get("name"), assetType) for assetType in response.json()["results"]] 
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[assetTypes] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -575,7 +579,7 @@ try:
     _=[x(attributeTypes, attributeType.get("name"), attributeType) for attributeType in response.json()["results"]]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[attributeTypes] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -588,7 +592,7 @@ try:
     _=[x(relationTypes, f"{relationType.get('sourceType').get('name')} {relationType.get('role')} {relationType.get('targetType').get('name')}", relationType) for relationType in response.json()["results"]]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[relationTypes] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -601,7 +605,7 @@ try:
     _=[x(statuses, status.get("name"), status) for status in response.json()["results"]]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[statuses] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -614,9 +618,8 @@ try:
     _=[x(communities, community.get("name"), community) for community in response.json()["results"]]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[communities] Something went wrong. Please try again.')
     st.stop()
-
 
 
 # choose the collibra community where to save the new models
@@ -634,7 +637,7 @@ try:
     _=[x(domains, domain.get("name"), domain) for domain in response.json()["results"]]
 
 except Exception as e:
-    st.warning('Something went wrong. Please try again.')
+    st.error('[domains] Something went wrong. Please try again.')
     st.stop()
 
 
@@ -718,7 +721,7 @@ with st.spinner('get models..'):
         _=[model.update({"comments": getModelComments(signavio, model)}) for model in modelsToUpsert]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[models] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -730,7 +733,7 @@ with st.spinner('search assets..'):
         assetsThatExist = [getAssets(collibra, [assetTypeToSet], [model.get("rep").get("name")], signavioHrefAttributeToSet.get("id")) for model in modelsToUpsert]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[viewconfig] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -753,7 +756,7 @@ with st.spinner('create assets..'):
         assetsToUpdate.extend(assetsToCreate)
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[assets] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -774,8 +777,15 @@ with st.spinner('update models..'):
         responses = [updateModel(signavio, asset) for asset in assetsToUpdate]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[model] Something went wrong. Please try again.')
         st.stop()
+
+
+df = pd.DataFrame([[asset.get("name"), asset.get("id"), asset.get("typeId"), asset.get("href")] for asset in assetsToUpdate], columns =['name', 'id', 'type', 'href'])
+
+if not df.empty: 
+    st.write("updated:")
+    st.dataframe(df, use_container_width=True) 
 
 
 # change
@@ -801,7 +811,7 @@ with st.spinner("update asset attributes.."):
         responses = [collibra.get("session").put(f"{collibra.get('endpoint')}/assets/{payload.get('assetId')}/attributes", json=payload).json() for payload in payloads]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[attributes] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -815,7 +825,7 @@ with st.spinner("get consumed asset relations.."):
         consumesAssets = [{assets.get(k).get("id"): getEntry(signavio, i).get("metaDataValues").get(uuidAttributeToSet.get("rep").get("id"))} for model in entries for k,v in model.items() if v is not None for i in v ]
         
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[dictionary] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -828,7 +838,7 @@ with st.spinner("get produced asset relations.."):
         producesAssets = [{assets.get(k).get("id"): getEntry(signavio, i).get("metaDataValues").get(uuidAttributeToSet.get("rep").get("id"))} for model in entries for k,v in model.items() if v is not None for i in v ]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[dictionary] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -839,7 +849,7 @@ with st.spinner("get all used asset relations.."):
         usesAssets = [{assets.get(model.get("rep").get("name")).get("id"):document.get("rep").get("metaDataValues").get(uuidAttributeToSet.get("rep").get("id"))} for model in modelsToUpsert  for document in model.get("dictionary") if document.get("rep").get("categoryName") == categoryToGet.get("rep").get("name")]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[dictionary] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -854,7 +864,7 @@ with st.spinner("create consumed asset relations.."):
         responses = [collibra.get("session").post(f"{collibra.get('endpoint')}/relations", json=payload).json() for payload in payloads]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[relations] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -866,7 +876,7 @@ with st.spinner("create produced asset relations.."):
         responses = [collibra.get("session").post(f"{collibra.get('endpoint')}/relations", json=payload).json() for payload in payloads]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[relations] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -878,7 +888,7 @@ with st.spinner("create all used asset relations.."):
         responses = [collibra.get("session").post(f"{collibra.get('endpoint')}/relations", json=payload).json() for payload in payloads]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[relations] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -890,7 +900,7 @@ with st.spinner("save asset portable network graphics"):
         pngs = [save(collibra, assets.get(x.get("rep").get("name")).get("id"), x.get("png"), "png") for x in modelsToUpsert]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[attachments] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -902,7 +912,7 @@ with st.spinner("save asset scalable vector graphics.."):
         svgs = [save(collibra, assets.get(x.get("rep").get("name")).get("id"), x.get("svg"), "svg") for x in modelsToUpsert]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[attachments] Something went wrong. Please try again.')
         st.stop()
 
 
@@ -917,7 +927,7 @@ with st.spinner("update asset image attribute with svg.."):
         responses = [collibra.get("session").put(f"{collibra.get('endpoint')}/assets/{payload.get('assetId')}/attributes", json=payload).json() for payload in payloads]
 
     except Exception as e:
-        st.warning('Something went wrong. Please try again.')
+        st.error('[attributes] Something went wrong. Please try again.')
         st.stop()
 
 
