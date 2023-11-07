@@ -314,11 +314,11 @@ def getAssets(collibra, assetTypes, assetNames, hrefAttributeType):
             "Resources": {
                 "Asset": {
                     "name": "Assets",
-                    "Signifier": {
-                        "name": "assetName"
-                    },
                     "Id": {
                         "name": "assetId"
+                    },
+                    "Signifier": {
+                        "name": "assetName"
                     },
                     "AssetType": {
                         "name": "assetType",
@@ -336,23 +336,14 @@ def getAssets(collibra, assetTypes, assetNames, hrefAttributeType):
                         "name": "assetDomain",
                         "Id": {
                             "name": "assetDomainId"
-                        },
-                        "Community": {
-                            "name": "assetCommunity",
-                            "Id": {
-                                "name": "assetCommunityId"
-                            }
                         }
                     },
                     "StringAttribute": [
                         {
                             "name": "href",
                             "labelId": hrefAttributeType,
-                            "Id": {
-                                "name": "hrefAttributeId"
-                            },
                             "LongExpression": {
-                                "name": "hrefAttributeValue"
+                                "name": "hrefValue"
                             }
                         }  
                     ],
@@ -372,12 +363,6 @@ def getAssets(collibra, assetTypes, assetNames, hrefAttributeType):
                                     "value": [name for name in assetNames]
                                 }
                             }
-                            # {
-                            #     "Field": {
-                            #         "name": "hrefAttributeValue",
-                            #         "operator": "NOT_NULL"
-                            #     }
-                            # }
                         ]
                     }              
                 }
@@ -522,9 +507,9 @@ categoryToGet = categories.get(option) if option else st.warning("Please specify
 
 
 # list all signavio models found on the selected folders ignoring any child folders
-modelsToGet = [getModel(signavio, model) for folder in foldersToQuery for model in folder if isModelValid(model, modelType=["Business Process Diagram (BPMN 2.0)"])]
+modelsToUpsert = [getModel(signavio, model) for folder in foldersToQuery for model in folder if isModelValid(model, modelType=["Business Process Diagram (BPMN 2.0)"])]
 
-if not modelsToGet:
+if not modelsToUpsert:
     st.error('[models] Something went wrong. Please try again.')
     st.stop()
 
@@ -689,12 +674,10 @@ option = st.selectbox(label='Choose how the linked assets should be connected', 
 runsRelationToSet = relationTypes.get(option) if option else st.warning("Please specify.") & st.stop()
 
 
-modelsToUpsert = []
-
 with st.spinner('get models..'):
     try:
         # get the details of all selected signavio models to create or update
-        modelsToUpsert = [info for model in modelsToGet for info in model if info.get("rel") == "info"]
+        modelsToUpsert = [info for model in modelsToUpsert for info in model if info.get("rel") == "info"]
 
 
         # get the properties of all signavio models found on the selected folders 
@@ -726,11 +709,11 @@ with st.spinner('get models..'):
 
 
 # get all the collibra assets found under the selected domain
-assetsThatExist = []
+assets = []
 
 with st.spinner('search assets..'):
     try:
-        assetsThatExist = [getAssets(collibra, [assetTypeToSet], [model.get("rep").get("name")], signavioHrefAttributeToSet.get("id")) for model in modelsToUpsert]
+        assets = [getAssets(collibra, [assetTypeToSet], [model.get("rep").get("name")], signavioHrefAttributeToSet.get("id")) for model in modelsToUpsert]
 
     except Exception as e:
         st.error('[viewconfig] Something went wrong. Please try again.')
@@ -738,8 +721,8 @@ with st.spinner('search assets..'):
 
 
 # create all new collibra assets under the selected domain 
-def p(model, assetId, assetType, status, domain):   
-    return {"id": assetId, "name": model.get("rep").get("name"), "displayName": model.get("rep").get("name"), "typeId": assetType.get("id"), "statusId": status.get("id"), "domainId": domain.get("id"), "href": "/".join(model.get("href").split('/')[0:-1])}
+def p(model, assetId, assetType, assetStatus, assetDomain):   
+    return {"id": assetId, "name": model.get("rep").get("name"), "displayName": model.get("rep").get("name"), "typeId": assetType.get("id"), "statusId": assetStatus.get("id"), "domainId": assetDomain.get("id"), "href": "/".join(model.get("href").split('/')[0:-1])}
 
 assetsToCreate = []
 
@@ -747,7 +730,7 @@ assetsToUpdate = []
 
 with st.spinner('create assets..'):
     try:
-        _=[assetsToUpdate.append(p(modelsToUpsert[i], asset[0].get("assetId"), assetTypeToSet, statusToSet, domainToUpdate)) if asset else assetsToCreate.append(p(modelsToUpsert[i], None, assetTypeToSet, statusToSet, domainToUpdate)) for i, asset in enumerate(assetsThatExist)]
+        _=[assetsToUpdate.append(p(modelsToUpsert[i], asset[0].get("assetId"), assetTypeToSet, statusToSet, domainToUpdate)) if asset else assetsToCreate.append(p(modelsToUpsert[i], None, assetTypeToSet, statusToSet, domainToUpdate)) for i, asset in enumerate(assets)]
 
         response = collibra.get("session").post(f"{collibra.get('endpoint')}/assets/bulk", json=assetsToCreate)
 
@@ -761,10 +744,10 @@ with st.spinner('create assets..'):
 
 
 # update the model in signavio with the collibra asset id and type, new revision
-def p(collibra, asset, uuidAttribute, typeAttribute, hrefAttribute): 
-    href = {"label": "", "url": f"{collibra.get('host')}/asset/{asset.get('id')}"}
+def p(asset, assetHost, modelUuid, modelType, modelHref): 
+    href = {"label": "", "url": f"{assetHost}/asset/{asset.get('id')}"}
 
-    return {uuidAttribute.get("rep").get("id"): asset.get("id"), typeAttribute.get("rep").get("id"): asset.get("typeId"), hrefAttribute.get("rep").get("id"): href}
+    return {modelUuid.get("rep").get("id"): asset.get("id"), modelType.get("rep").get("id"): asset.get("typeId"), modelHref.get("rep").get("id"): href}
 
 with st.spinner('update models..'):
     try:
@@ -772,7 +755,7 @@ with st.spinner('update models..'):
 
         _=[asset.update({"json": getModelJson(signavio, asset.get("href"))}) for asset in assetsToUpdate]
 
-        _=[asset.get("json").get("properties").update(p(collibra, asset, uuidAttributeToSet, typeAttributeToSet, hrefAttributeToSet)) for asset in assetsToUpdate]
+        _=[asset.get("json").get("properties").update(p(asset, collibra.get('host'), uuidAttributeToSet, typeAttributeToSet, hrefAttributeToSet)) for asset in assetsToUpdate]
 
         responses = [updateModel(signavio, asset) for asset in assetsToUpdate]
 
@@ -788,15 +771,21 @@ if not df.empty:
     st.dataframe(df, use_container_width=True) 
 
 
-# change
+# remove
+_=[asset.pop("info") for asset in assetsToUpdate if "info" in asset]
+
+_=[asset.pop("json") for asset in assetsToUpdate if "json" in asset]
+
+
+# index
 assets = {}
 
 _=[x(assets, asset.get("name"), asset) for asset in assetsToUpdate]
 
 
 # update all collibra assets attributes in scope
-def p(asset, attributeType, value): 
-     return {"assetId": asset.get("id"), "typeId": attributeType.get("id"), "values": [value]}
+def p(asset, attributeType, attributeValue): 
+     return {"assetId": asset.get("id"), "typeId": attributeType.get("id"), "values": [attributeValue]}
 
 with st.spinner("update asset attributes.."):
     try:
@@ -854,8 +843,8 @@ with st.spinner("get all used asset relations.."):
 
 
 # create all the consumed asset relations 
-def p(sourceId, targetId, relationType): 
-    return {'sourceId': sourceId, 'targetId': targetId, 'typeId': relationType.get("id")}
+def p(sourceUuid, targetUuid, relationType): 
+    return {'sourceId': sourceUuid, 'targetId': targetUuid, 'typeId': relationType.get("id")}
 
 with st.spinner("create consumed asset relations.."):
     try: 
@@ -917,8 +906,8 @@ with st.spinner("save asset scalable vector graphics.."):
 
 
 # update the collibra assets report image attribute with svg 
-def p(asset, attributeType, file): 
-     return {"assetId": asset.get("id"), "typeId": attributeType.get("id"), "values": [f"<img src='/rest/2.0/attachments/{file.get('id')}/file'>"]}
+def p(asset, attributeType, attributeValue): 
+     return {"assetId": asset.get("id"), "typeId": attributeType.get("id"), "values": [f"<img src='/rest/2.0/attachments/{attributeValue.get('id')}/file'>"]}
 
 with st.spinner("update asset image attribute with svg.."):
     try:
@@ -928,6 +917,28 @@ with st.spinner("update asset image attribute with svg.."):
 
     except Exception as e:
         st.error('[attributes] Something went wrong. Please try again.')
+        st.stop()
+
+
+
+# create all the business process runs business process relations
+def p(sourceUuid, targetUuid, relationType): 
+    return {'sourceId': sourceUuid, 'targetId': targetUuid, 'typeId': relationType.get("id")}
+
+with st.spinner("create all runs asset relations.."):
+    try:
+        modelsToGet = [{link.get("rep").get("name"): assets.get(link.get("rep").get("name"))} for model in modelsToUpsert for link in model["links"] if isModelValid(link, modelType=["Business Process Diagram (BPMN 2.0)"]) and assets.get(link.get("rep").get("name")) is None]
+
+        assetsToAdd = [getAssets(collibra, [assetTypeToSet], [k], signavioHrefAttributeToSet.get("id")) for model in modelsToGet for k,v in model.items()]
+
+        _=[assets.update({asset[0].get("assetName"): {"id": asset[0].get("assetId"), "name": asset[0].get("assetName")}}) for asset in assetsToAdd]
+
+        payloads = [p(assets.get(model.get("rep").get("name")).get("id"), assets.get(link.get("rep").get("name")).get("id"), runsRelationToSet) for model in modelsToUpsert for link in model["links"] if isModelValid(link, modelType=["Business Process Diagram (BPMN 2.0)"])]
+
+        responses = [collibra.get("session").post(f"{collibra.get('endpoint')}/relations", json=payload).json() for payload in payloads]
+
+    except Exception as e:
+        st.error('[relations] Something went wrong. Please try again.')
         st.stop()
 
 
