@@ -1,0 +1,26 @@
+{
+    "logger": {
+        "level": 20,
+        "formatter": "%(asctime)s %(levelname)s: %(message)s "
+
+    },
+    "signavio": {
+        "host": "https://editor.signavio.com",
+        "tenant": "93ab506a8d87439f9fbb680fdbc95d4b",
+        "username": "antonio.castelo@collibra.com",
+        "password": "W2.Collibra",
+        "uuidAttributeToSet": "id",
+        "typeAttributeToSet": "typeId",
+        "hrefAttributeToSet": "href",
+        "categoryToUpdate": "Data Concepts"
+    },
+    "collibra": {
+        "host": "https://print.collibra.com",
+        "username": "DataLakeAdmin",
+        "password": "W2.Collibra",
+        "communitiesToQuery": ["Data Architects community", "Data Scientists community"],
+        "assetTypesToGet": ["Data Concept", "Data Domain"],
+        "statusTypesToGet": ["Accepted", "Candidate"],
+        "signavioHrefAttributeToSet": "Signavio href"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "logger": {
+        "level": 20,
+        "formatter": "%(asctime)s %(levelname)s: %(message)s "
+
+    },
+    "signavio": {
+        "host": "https://editor.signavio.com",
+        "tenant": "93ab506a8d87439f9fbb680fdbc95d4b",
+        "username": "antonio.castelo@collibra.com",
+        "password": "W2.Collibra",
+        "foldersToQuery": ["Level 3 & 4: Employee Recruitment", "Level 3 & 4: Procurement of Parts"],
+        "consumesAttributeToGet": "Consuming Data Assets",
+        "producesAttributeToGet": "Producing Data Assets",
+        "uuidAttributeToSet": "id",
+        "typeAttributeToSet": "typeId",
+        "hrefAttributeToSet": "href",
+        "categoryToGet": "Data Concepts"
+    },
+    "collibra": {
+        "host": "https://print.collibra.com",
+        "username": "DataLakeAdmin",
+        "password": "W2.Collibra",
+        "communityToUpdate": "Marketing community",
+        "domainToUpdate": "Marketing Processes",
+        "assetTypeToSet": "Business Process",
+        "statusToSet": "Approval Pending",
+        "signavioHrefAttributeToSet": "Signavio href",
+        "consumesRelationToSet": "Business Process consumes Business Asset",
+        "producesRelationToSet": "Business Process produces Business Asset",
+        "usesRelationToSet": "Business Process uses Business Asset",
+        "runsRelationToSet": "Business Process runs Business Process"
+    }
+}
