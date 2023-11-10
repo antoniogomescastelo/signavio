@@ -26,6 +26,29 @@
         "communitiesToQuery": ["Data Architects community", "Data Scientists community"],
         "assetTypesToGet": ["Data Concept", "Data Domain"],
         "statusTypesToGet": ["Accepted", "Candidate"],
-        "signavioHrefAttributeToSet": "Signavio href"
+        "signavioHrefAttributeToSet": "Signavio href",
+
+        "communityToUpdate": "Marketing community",
+        "domainToUpdate": "Marketing Processes",
+        "assetTypeToSet": "Business Process",
+        "statusToSet": "Approval Pending",
+        "consumesRelationToSet": "Business Process consumes Business Asset",
+        "producesRelationToSet": "Business Process produces Business Asset",
+        "usesRelationToSet": "Business Process uses Business Asset",
+        "runsRelationToSet": "Business Process runs Business Process"
+    },
+    "mappings": {
+        "attributesInScope": {
+            "href": "Signavio href", 
+            "parent": "Parent Folder", 
+            "parentName": "Parent Folder Name", 
+            "description": "Description", 
+            "isDeployed": "Deployed", 
+            "rev": "Revision", 
+            "author": "Author", 
+            "authorName": "Author Name", 
+            "approve": "Approved", 
+            "publish": "Published"
+        }
     }
 }

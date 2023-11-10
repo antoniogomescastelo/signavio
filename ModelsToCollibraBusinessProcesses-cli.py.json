@@ -30,5 +30,19 @@
         "producesRelationToSet": "Business Process produces Business Asset",
         "usesRelationToSet": "Business Process uses Business Asset",
         "runsRelationToSet": "Business Process runs Business Process"
+    },
+    "mappings": {
+        "attributesInScope": {
+            "href": "Signavio href", 
+            "parent": "Parent Folder", 
+            "parentName": "Parent Folder Name", 
+            "description": "Description", 
+            "isDeployed": "Deployed", 
+            "rev": "Revision", 
+            "author": "Author", 
+            "authorName": "Author Name", 
+            "approve": "Approved", 
+            "publish": "Published"
+        }
     }
 }

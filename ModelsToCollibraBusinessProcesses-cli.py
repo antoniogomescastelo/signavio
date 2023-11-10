@@ -931,9 +931,14 @@ logger.info('update all collibra assets attributes in scope')
 def p(asset, attributeType, attributeValue): 
      return {"assetId": asset.get("id"), "typeId": attributeType.get("id"), "values": [attributeValue]}
 
-try:
-    attributesInScope = {"href": "Signavio href", "parent": "Parent Folder", "parentName": "Parent Folder Name", "description": "Description", "isDeployed": "Deployed", "rev": "Revision", "author": "Author", "authorName": "Author Name", "approve": "Approved", "publish": "Published"}
+attributesInScope = config.get("mappings").get("attributesInScope")
 
+if not attributesInScope:
+    logger.error(f"{__file__.split('/')[-1]}: error: missing mappings:attributesInScope or no mappings found")
+    logger.error('[mappings] Something went wrong. Please try again.')
+    exit(-1)
+
+try:
     payloads = [p(assets.get(model.get("rep").get("name")), attributeTypes.get(attributesInScope["href"]), "/".join(model.get("href").split('/')[0:-1])) for model in modelsToUpsert] 
 
     payloads.extend([p(assets.get(model.get("rep").get("name")), attributeTypes.get(attributesInScope[k]), v) for model in modelsToUpsert for k,v in model.get("rep").items() if k in attributesInScope])
