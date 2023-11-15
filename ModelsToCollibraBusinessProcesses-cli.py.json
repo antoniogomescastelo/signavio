@@ -7,7 +7,6 @@
         "host": "https://editor.signavio.com",
         "tenant": "93ab506a8d87439f9fbb680fdbc95d4b",
         "username": "antonio.castelo@collibra.com",
-        "password": "[password]",
         "foldersToQuery": [
             "Level 3 & 4: Employee Recruitment",
             "Level 3 & 4: Procurement of Parts"
@@ -22,7 +21,6 @@
     "collibra": {
         "host": "https://print.collibra.com",
         "username": "[username]",
-        "password": "[password]",
         "communityToUpdate": "Marketing community",
         "domainToUpdate": "Marketing Processes",
         "assetTypeToSet": "Business Process",

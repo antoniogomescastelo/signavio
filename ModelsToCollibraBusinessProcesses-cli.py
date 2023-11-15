@@ -298,9 +298,7 @@ def getModelJson(signavio, href):
 
 
 # check if a given signavio model is valid
-def isModelValid(
-    model, modelType=None, deployedOnly=False, approvedOnly=False, publishedOnly=False
-):
+def isModelValid(model, modelType=None, deployedOnly=False, approvedOnly=False, publishedOnly=False):
     result = True
 
     try:
@@ -309,13 +307,11 @@ def isModelValid(
         result = False if model.get("rep").get("deleted") == True else result
 
         result = (
-            False if model.get("rep").get("status").get(
-                "deleted") == True else result
+            False if model.get("rep").get("status").get("deleted") == True else result
         )
 
         if deployedOnly:
-            result = False if model.get("rep").get(
-                "isDeployed") == False else result
+            result = False if model.get("rep").get("isDeployed") == False else result
 
         if approvedOnly:
             result = (
@@ -332,8 +328,7 @@ def isModelValid(
             )
 
         if modelType is not None:
-            result = False if model.get("rep").get(
-                "type") not in modelType else result
+            result = False if model.get("rep").get("type") not in modelType else result
 
         return result
 
@@ -373,7 +368,8 @@ def getattributes(signavio):
     url = f"{signavio.get('host')}/p/meta"
 
     headers = {
-        "x-signavio-id": signavio.get("authToken"), "accept": "application/json"}
+        "x-signavio-id": signavio.get("authToken"), 
+        "accept": "application/json"}
 
     cookies = {
         "JSESSIONID": signavio.get("jsessionId"),
@@ -390,7 +386,8 @@ def getEntry(signavio, entry):
     url = f"{signavio.get('host')}/p{entry}/info"
 
     headers = {
-        "x-signavio-id": signavio.get("authToken"), "accept": "application/json"}
+        "x-signavio-id": signavio.get("authToken"), 
+        "accept": "application/json"}
 
     cookies = {
         "JSESSIONID": signavio.get("jsessionId"),
@@ -407,7 +404,8 @@ def getcategories(signavio):
     url = f"{signavio.get('host')}/p/glossarycategory?allCategories=true"
 
     headers = {
-        "x-signavio-id": signavio.get("authToken"), "accept": "application/json"}
+        "x-signavio-id": signavio.get("authToken"), 
+        "accept": "application/json"}
 
     cookies = {
         "JSESSIONID": signavio.get("jsessionId"),
@@ -517,6 +515,14 @@ parser.add_argument(
     "--config", dest="config", required=True, help="configuration file (json)"
 )
 
+parser.add_argument(
+    "--collibra", dest="collibra", required=True, help="collibra user password"
+)
+
+parser.add_argument(
+    "--signavio", dest="signavio", required=True, help="signavio user password"
+)
+
 args, options = parser.parse_known_args(sys.argv)
 
 if not exists(args.config):
@@ -525,6 +531,7 @@ if not exists(args.config):
     )
     logger.error("[parser] Something went wrong. Please try again.")
     exit(-1)
+
 
 # get config file
 logger.info("get config file")
@@ -540,6 +547,7 @@ formatter = logging.Formatter(config.get("logger").get("formatter"))
 
 handler.setFormatter(formatter)
 
+
 # connect to signavio
 logger.info("connect to signavio")
 
@@ -550,7 +558,7 @@ try:
 
     data = {
         "name": signavio.get("username"),
-        "password": signavio.get("password"),
+        "password": args.signavio,
         "tenant": signavio.get("tenant"),
         "tokenonly": "true",
     }
@@ -563,16 +571,13 @@ try:
 
     lbrouteId = request.cookies.get("LBROUTEID")
 
-    signavio = {
-        "host": signavio.get("host"),
-        "tenant": signavio.get("tenant"),
-        "authToken": authToken,
-        "jsessionId": jsessionId,
-        "lbrouteId": lbrouteId,
-    }
+    signavio["authToken"] = authToken
+
+    signavio["jsessionId"] = jsessionId
+
+    signavio["lbrouteId"] = lbrouteId
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[login] Something went wrong. Please try again.")
     exit(-1)
 
@@ -590,7 +595,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[login] Something went wrong. Please try again.")
     exit(-1)
 
@@ -608,14 +612,11 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[folders] Something went wrong. Please try again.")
     exit(-1)
 
 if not foldersToQuery:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:foldersToQuery or no folders found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:foldersToQuery or no folders found")
     logger.error("[folders] Something went wrong. Please try again.")
     exit(-1)
 
@@ -632,7 +633,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
@@ -645,9 +645,7 @@ consumesAttributeToGet = attributes.get(
 )
 
 if not consumesAttributeToGet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:consumesAttributeToGet or no attributes found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:consumesAttributeToGet or no attributes found")
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
@@ -660,9 +658,7 @@ producesAttributeToGet = attributes.get(
 )
 
 if not producesAttributeToGet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:producesAttributeToGet or no attributes found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:producesAttributeToGet or no attributes found")
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
@@ -670,28 +666,21 @@ if not producesAttributeToGet:
 # choose the custom attribute which will hold the collibra asset id
 logger.info("choose the custom attribute which will hold the collibra asset id")
 
-uuidAttributeToSet = attributes.get(
-    config.get("signavio").get("uuidAttributeToSet"))
+uuidAttributeToSet = attributes.get(config.get("signavio").get("uuidAttributeToSet"))
 
 if not uuidAttributeToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:uuidAttributeToSet or no attributes found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:uuidAttributeToSet or no attributes found")
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
 
 # choose the custom attribute which will hold the collibra asset type id
-logger.info(
-    "choose the custom attribute which will hold the collibra asset type id")
+logger.info("choose the custom attribute which will hold the collibra asset type id")
 
-typeAttributeToSet = attributes.get(
-    config.get("signavio").get("typeAttributeToSet"))
+typeAttributeToSet = attributes.get(config.get("signavio").get("typeAttributeToSet"))
 
 if not typeAttributeToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:typeAttributeToSet or no attributes found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:typeAttributeToSet or no attributes found")
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
@@ -701,13 +690,10 @@ logger.info(
     "choose the custom attribute which will hold the collibra asset url for reference"
 )
 
-hrefAttributeToSet = attributes.get(
-    config.get("signavio").get("hrefAttributeToSet"))
+hrefAttributeToSet = attributes.get(config.get("signavio").get("hrefAttributeToSet"))
 
 if not hrefAttributeToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:hrefAttributeToSet or no attributes found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:hrefAttributeToSet or no attributes found")
     logger.error("[meta] Something went wrong. Please try again.")
     exit(-1)
 
@@ -725,7 +711,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[glossarycategory] Something went wrong. Please try again.")
     exit(-1)
 
@@ -736,26 +721,24 @@ logger.info("choose the signavio dictionary category to get")
 categoryToGet = categories.get(config.get("signavio").get("categoryToGet"))
 
 if not categoryToGet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing signavio:categoryToGet or no category found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing signavio:categoryToGet or no category found")
     logger.error("[glossarycategory] Something went wrong. Please try again.")
     exit(-1)
 
 
 # get the details of all selected signavio folders to create or update
-logger.info(
-    "get the details of all selected signavio folders to create or update")
+logger.info("get the details of all selected signavio folders to create or update")
 
 foldersToUpsert = [
-    info for folder in foldersToQuery for info in folder if info.get("rel") == "info"
+    info 
+    for folder in foldersToQuery 
+    for info in folder 
+    if info.get("rel") == "info"
 ]
 
 
 # list all signavio models found on the selected folders ignoring any child folders
-logger.info(
-    "list all signavio models found on the selected folders ignoring any child folders"
-)
+logger.info("list all signavio models found on the selected folders ignoring any child folders")
 
 modelsToUpsert = [
     getModel(signavio, model)
@@ -765,7 +748,6 @@ modelsToUpsert = [
 ]
 
 if not modelsToUpsert:
-    logger.error(e.message)
     logger.error("[models] Something went wrong. Please try again.")
     exit(-1)
 
@@ -777,18 +759,9 @@ collibra = config.get("collibra")
 
 collibra["endpoint"] = f"{collibra['host']}/rest/2.0"
 
-collibra = {
-    "host": collibra.get("host"),
-    "endpoint": collibra.get("endpoint"),
-    "username": collibra.get("username"),
-    "password": collibra.get("password"),
-}
-
 collibra["session"] = requests.Session()
 
-collibra.get("session").auth = HTTPBasicAuth(
-    collibra.get("username"), collibra.get("password")
-)
+collibra.get("session").auth = HTTPBasicAuth(collibra.get("username"), args.collibra)
 
 
 # get the collibra asset types
@@ -797,8 +770,7 @@ logger.info("get the collibra asset types")
 assetTypes = {}
 
 try:
-    response = collibra.get("session").get(
-        f"{collibra.get('endpoint')}/assetTypes")
+    response = collibra.get("session").get(f"{collibra.get('endpoint')}/assetTypes")
 
     _ = [
         x(assetTypes, assetType.get("name"), assetType)
@@ -806,7 +778,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[assetTypes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -817,8 +788,7 @@ logger.info("get the collibra attribute types")
 attributeTypes = {}
 
 try:
-    response = collibra.get("session").get(
-        f"{collibra.get('endpoint')}/attributeTypes")
+    response = collibra.get("session").get(f"{collibra.get('endpoint')}/attributeTypes")
 
     _ = [
         x(attributeTypes, attributeType.get("name"), attributeType)
@@ -826,7 +796,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[attributeTypes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -837,8 +806,7 @@ logger.info("get the collibra relation types")
 relationTypes = {}
 
 try:
-    response = collibra.get("session").get(
-        f"{collibra.get('endpoint')}/relationTypes")
+    response = collibra.get("session").get(f"{collibra.get('endpoint')}/relationTypes")
 
     _ = [
         x(
@@ -850,7 +818,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[relationTypes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -861,15 +828,13 @@ logger.info("get the collibra statuses")
 statuses = {}
 
 try:
-    response = collibra.get("session").get(
-        f"{collibra.get('endpoint')}/statuses")
+    response = collibra.get("session").get(f"{collibra.get('endpoint')}/statuses")
 
     _ = [
         x(statuses, status.get("name"), status) for status in response.json()["results"]
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[statuses] Something went wrong. Please try again.")
     exit(-1)
 
@@ -880,8 +845,7 @@ logger.info("get the collibra communities")
 communities = {}
 
 try:
-    response = collibra.get("session").get(
-        f"{collibra.get('endpoint')}/communities")
+    response = collibra.get("session").get(f"{collibra.get('endpoint')}/communities")
 
     _ = [
         x(communities, community.get("name"), community)
@@ -889,7 +853,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[communities] Something went wrong. Please try again.")
     exit(-1)
 
@@ -897,13 +860,10 @@ except Exception as e:
 # choose the collibra community where to save the new models
 logger.info("choose the collibra community where to save the new models")
 
-communityToUpdate = communities.get(
-    config.get("collibra").get("communityToUpdate"))
+communityToUpdate = communities.get(config.get("collibra").get("communityToUpdate"))
 
 if not communityToUpdate:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:communityToUpdate or no community found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:communityToUpdate or no community found")
     logger.error("[communities] Something went wrong. Please try again.")
     exit(-1)
 
@@ -923,7 +883,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[domains] Something went wrong. Please try again.")
     exit(-1)
 
@@ -934,9 +893,7 @@ logger.info("choose the collibra domain where to save the new models")
 domainToUpdate = domains.get(config.get("collibra").get("domainToUpdate"))
 
 if not domainToUpdate:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:domainToUpdate or no domain found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:domainToUpdate or no domain found")
     logger.error("[domains] Something went wrong. Please try again.")
     exit(-1)
 
@@ -947,9 +904,7 @@ logger.info("choose the collibra asset type for the new models")
 assetTypeToSet = assetTypes.get(config.get("collibra").get("assetTypeToSet"))
 
 if not assetTypeToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:assetTypeToSet or no asset type found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:assetTypeToSet or no asset type found")
     logger.error("[assetTypes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -960,9 +915,7 @@ logger.info("choose the collibra status your models should be created with")
 statusToSet = statuses.get(config.get("collibra").get("statusToSet"))
 
 if not statusToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:statusToSet or no status found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:statusToSet or no status found")
     logger.error("[statuses] Something went wrong. Please try again.")
     exit(-1)
 
@@ -975,71 +928,55 @@ signavioHrefAttributeToSet = attributeTypes.get(
 )
 
 if not signavioHrefAttributeToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:signavioHrefAttributeToSet or no attribute found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:signavioHrefAttributeToSet or no attribute found")
     logger.error("[attributeTypes] Something went wrong. Please try again.")
     exit(-1)
 
 
 # choose the collibra relation between the process and the consuming assets
-logger.info(
-    "choose the collibra relation between the process and the consuming assets")
+logger.info("choose the collibra relation between the process and the consuming assets")
 
 consumesRelationToSet = relationTypes.get(
     config.get("collibra").get("consumesRelationToSet")
 )
 
 if not consumesRelationToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:consumesRelationToSet or no relation found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:consumesRelationToSet or no relation found")
     logger.error("[relationTypes] Something went wrong. Please try again.")
     exit(-1)
 
 
 # choose the collibra relation between the process and the producing assets
-logger.info(
-    "choose the collibra relation between the process and the producing assets")
+logger.info("choose the collibra relation between the process and the producing assets")
 
 producesRelationToSet = relationTypes.get(
     config.get("collibra").get("producesRelationToSet")
 )
 
 if not producesRelationToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:producesRelationToSet or no relation found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:producesRelationToSet or no relation found")
     logger.error("[relationTypes] Something went wrong. Please try again.")
     exit(-1)
 
 
 # choose the collibra relation between the process and the used assets
-logger.info(
-    "choose the collibra relation between the process and the used assets")
+logger.info("choose the collibra relation between the process and the used assets")
 
-usesRelationToSet = relationTypes.get(
-    config.get("collibra").get("usesRelationToSet"))
+usesRelationToSet = relationTypes.get(config.get("collibra").get("usesRelationToSet"))
 
 if not usesRelationToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:usesRelationToSet or no relation found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:usesRelationToSet or no relation found")
     logger.error("[relationTypes] Something went wrong. Please try again.")
     exit(-1)
 
 
 # choose the collibra relation between the process and and run processes
-logger.info(
-    "choose the collibra relation between the process and and run processes")
+logger.info("choose the collibra relation between the process and and run processes")
 
-runsRelationToSet = relationTypes.get(
-    config.get("collibra").get("runsRelationToSet"))
+runsRelationToSet = relationTypes.get(config.get("collibra").get("runsRelationToSet"))
 
 if not runsRelationToSet:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing collibra:runsRelationToSet or no relation found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing collibra:runsRelationToSet or no relation found")
     logger.error("[relationTypes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1087,7 +1024,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[models] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1109,7 +1045,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[viewconfig] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1129,7 +1064,6 @@ def p(model, assetId, assetType, assetStatus, assetDomain):
         "href": "/".join(model.get("href").split("/")[0:-1]),
     }
 
-
 assetsToCreate = []
 
 assetsToUpdate = []
@@ -1147,8 +1081,7 @@ try:
         )
         if asset
         else assetsToCreate.append(
-            p(modelsToUpsert[i], None, assetTypeToSet,
-              statusToSet, domainToUpdate)
+            p(modelsToUpsert[i], None, assetTypeToSet, statusToSet, domainToUpdate)
         )
         for i, asset in enumerate(assets)
     ]
@@ -1165,16 +1098,12 @@ try:
     assetsToUpdate.extend(assetsToCreate)
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[assets] Something went wrong. Please try again.")
     exit(-1)
 
 
 # update the model in signavio with the collibra asset id and type, new revision
-logger.info(
-    "update the model in signavio with the collibra asset id and type, new revision"
-)
-
+logger.info("update the model in signavio with the collibra asset id and type, new revision")
 
 def p(asset, assetHost, modelUuid, modelType, modelHref):
     href = {"label": "", "url": f"{assetHost}/asset/{asset.get('id')}"}
@@ -1215,7 +1144,6 @@ try:
     responses = [updateModel(signavio, asset) for asset in assetsToUpdate]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[model] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1243,13 +1171,10 @@ def p(asset, attributeType, attributeValue):
         "values": [attributeValue],
     }
 
-
 attributesInScope = config.get("mappings").get("attributesInScope")
 
 if not attributesInScope:
-    logger.error(
-        f"{__file__.split('/')[-1]}: error: missing mappings:attributesInScope or no mappings found"
-    )
+    logger.error(f"{__file__.split('/')[-1]}: error: missing mappings:attributesInScope or no mappings found")
     logger.error("[mappings] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1300,7 +1225,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[attributes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1334,7 +1258,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[dictionary] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1365,7 +1288,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[dictionary] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1387,7 +1309,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[dictionary] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1417,7 +1338,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[relations] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1438,7 +1358,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[relations] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1447,8 +1366,7 @@ except Exception as e:
 logger.info("create all the used asset relations")
 
 try:
-    payloads = [p(k, v, usesRelationToSet)
-                for x in usesAssets for k, v in x.items()]
+    payloads = [p(k, v, usesRelationToSet) for x in usesAssets for k, v in x.items()]
 
     responses = [
         collibra.get("session")
@@ -1458,7 +1376,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[relations] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1480,7 +1397,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[attachments] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1502,7 +1418,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[attachments] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1538,7 +1453,6 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[attributes] Something went wrong. Please try again.")
     exit(-1)
 
@@ -1565,8 +1479,7 @@ try:
     ]
 
     assetsToAdd = [
-        getAssets(collibra, [assetTypeToSet], [k],
-                  signavioHrefAttributeToSet.get("id"))
+        getAssets(collibra, [assetTypeToSet], [k], signavioHrefAttributeToSet.get("id"))
         for model in modelsToGet
         for k, v in model.items()
     ]
@@ -1602,12 +1515,10 @@ try:
     ]
 
 except Exception as e:
-    logger.error(e.message)
     logger.error("[relations] Something went wrong. Please try again.")
     exit(-1)
 
 
 logger.info("done")
 
-# comments, it systems, roles (?), depts (?), units (?), participants (?), risks and controls
 exit(0)

@@ -7,7 +7,6 @@
         "host": "https://editor.signavio.com",
         "tenant": "93ab506a8d87439f9fbb680fdbc95d4b",
         "username": "antonio.castelo@collibra.com",
-        "password": "[password]",
         "uuidAttributeToSet": "id",
         "typeAttributeToSet": "typeId",
         "hrefAttributeToSet": "href",
@@ -23,7 +22,6 @@
     "collibra": {
         "host": "https://print.collibra.com",
         "username": "[username]",
-        "password": "[password]",
         "communitiesToQuery": [
             "Data Architects community",
             "Data Scientists community"
